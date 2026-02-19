@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мои лучшие друзья</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --lavender: #c084fc;
+    --sky: #7dd3fc;
+    --rose: #f9a8d4;
+    --mint: #6ee7b7;
+    --deep: #0f0a1e;
+    --card-bg: rgba(255,255,255,0.06);
+    --glass: rgba(255,255,255,0.08);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--deep);
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--lavender);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.3s, height 0.3s, background 0.3s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 40px; height: 40px;
+    border: 1.5px solid rgba(192,132,252,0.4);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: all 0.15s ease-out;
+  }
+
+  /* Background noise texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  /* Animated mesh background */
+  .bg-mesh {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.18;
+    animation: float linear infinite;
+  }
+  .orb-1 { width: 500px; height: 500px; background: var(--lavender); top: -100px; left: -100px; animation-duration: 20s; }
+  .orb-2 { width: 400px; height: 400px; background: var(--sky); top: 30%; right: -150px; animation-duration: 25s; animation-delay: -8s; }
+  .orb-3 { width: 350px; height: 350px; background: var(--rose); bottom: 10%; left: 20%; animation-duration: 18s; animation-delay: -4s; }
+  .orb-4 { width: 300px; height: 300px; background: var(--mint); bottom: -100px; right: 10%; animation-duration: 22s; animation-delay: -12s; }
+
+  @keyframes float {
+    0% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(40px,-30px) scale(1.05); }
+    66% { transform: translate(-20px,40px) scale(0.95); }
+    100% { transform: translate(0,0) scale(1); }
+  }
+
+  /* Nav */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 20px 5vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(15,10,30,0.5);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, var(--lavender), var(--rose));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a {
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    transition: color 0.3s;
+  }
+  .nav-links a:hover { color: #fff; }
+
+  /* Sections general */
+  section { position: relative; z-index: 1; }
+
+  /* Hero */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 5vw 80px;
+  }
+  .hero-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--lavender);
+    background: rgba(192,132,252,0.12);
+    border: 1px solid rgba(192,132,252,0.2);
+    padding: 6px 18px;
+    border-radius: 100px;
+    margin-bottom: 36px;
+    display: inline-block;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 7vw, 6rem);
+    font-weight: 900;
+    line-height: 1.05;
+    max-width: 900px;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+  .hero-title span {
+    background: linear-gradient(135deg, var(--lavender) 0%, var(--sky) 50%, var(--rose) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: rgba(255,255,255,0.55);
+    max-width: 520px;
+    line-height: 1.7;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+  .hero-cta {
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, var(--lavender), var(--sky));
+    color: #fff;
+    text-decoration: none;
+    padding: 16px 40px;
+    border-radius: 100px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    border: none;
+    cursor: none;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 40px rgba(192,132,252,0.3);
+  }
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 20px 60px rgba(192,132,252,0.4); }
+  .btn-primary:hover::before { opacity: 1; }
+
+  .scroll-indicator {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.2s forwards;
+  }
+  .scroll-indicator span {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+  }
+  .scroll-line {
+    width: 1px; height: 50px;
+    background: linear-gradient(to bottom, rgba(192,132,252,0.5), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%,100% { opacity: 0.5; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.1); }
+  }
+
+  /* Friends section */
+  #friends {
+    padding: 120px 5vw;
+  }
+  .section-header {
+    text-align: center;
+    margin-bottom: 80px;
+  }
+  .section-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sky);
+    margin-bottom: 16px;
+    display: block;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .section-title .accent {
+    background: linear-gradient(135deg, var(--rose), var(--lavender));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .friends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 28px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .friend-card {
+    background: var(--card-bg);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    overflow: hidden;
+    backdrop-filter: blur(16px);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.4s, border-color 0.4s;
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  .friend-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.4s, border-color 0.4s;
+  }
+  .friend-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(192,132,252,0.2);
+    border-color: rgba(192,132,252,0.25);
+  }
+
+  .card-photo {
+    width: 100%;
+    aspect-ratio: 4/3;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(192,132,252,0.15), rgba(125,211,252,0.15));
+  }
+  .card-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+  .friend-card:hover .card-photo img { transform: scale(1.05); }
+
+  .photo-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: rgba(255,255,255,0.4);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 20px;
+  }
+  .photo-placeholder .ph-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px dashed rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+  }
+  .photo-placeholder p { font-size: 0.75rem; letter-spacing: 0.05em; }
+
+  .soon-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(192,132,252,0.1), rgba(249,168,212,0.1));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    text-align: center;
+    padding: 20px;
+  }
+  .soon-badge {
+    background: linear-gradient(135deg, rgba(192,132,252,0.2), rgba(249,168,212,0.2));
+    border: 1px solid rgba(192,132,252,0.3);
+    border-radius: 100px;
+    padding: 8px 20px;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--lavender);
+    text-transform: uppercase;
+  }
+  .soon-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: rgba(255,255,255,0.5);
+    font-style: italic;
+  }
+  .soon-sparkle { font-size: 2rem; animation: sparkle 2s ease-in-out infinite; }
+  @keyframes sparkle {
+    0%,100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+    50% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+  }
+
+  .card-body { padding: 24px; }
+  .card-number {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.25);
+    margin-bottom: 6px;
+  }
+  .card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .card-desc {
+    font-size: 0.87rem;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+  .btn-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.7);
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: none;
+    text-decoration: none;
+    transition: all 0.3s;
+    letter-spacing: 0.03em;
+  }
+  .btn-more:hover {
+    background: rgba(192,132,252,0.15);
+    border-color: rgba(192,132,252,0.3);
+    color: #fff;
+    gap: 12px;
+  }
+  .btn-more .arrow { transition: transform 0.3s; }
+  .btn-more:hover .arrow { transform: translateX(4px); }
+
+  /* Card accent colors */
+  .friend-card:nth-child(1) .card-name { background: linear-gradient(135deg, var(--lavender), var(--sky)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .friend-card:nth-child(2) .card-name { background: linear-gradient(135deg, var(--rose), var(--lavender)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .friend-card:nth-child(3) .card-name { background: linear-gradient(135deg, var(--sky), var(--mint)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .friend-card:nth-child(4) .card-name { background: linear-gradient(135deg, var(--rose), #fb923c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .friend-card:nth-child(5) .card-name { background: linear-gradient(135deg, var(--mint), var(--sky)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .friend-card:nth-child(6) .card-name { background: linear-gradient(135deg, var(--lavender), var(--rose)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .friend-card:nth-child(7) .card-name { background: linear-gradient(135deg, #a78bfa, var(--rose)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .friend-card:nth-child(8) .card-name { background: linear-gradient(135deg, var(--sky), var(--lavender)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+  /* Quote/Why section */
+  #why {
+    padding: 120px 5vw;
+  }
+  .why-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .big-quote {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.5rem, 3.5vw, 2.8rem);
+    font-weight: 400;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 40px;
+    font-style: italic;
+    position: relative;
+  }
+  .big-quote::before {
+    content: '"';
+    font-size: 8rem;
+    line-height: 0;
+    position: absolute;
+    top: 50px;
+    left: -20px;
+    color: rgba(192,132,252,0.15);
+    font-style: normal;
+  }
+  .why-text {
+    font-size: 1.05rem;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.9;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .divider {
+    width: 60px; height: 2px;
+    background: linear-gradient(90deg, var(--lavender), var(--sky));
+    margin: 40px auto;
+    border-radius: 2px;
+  }
+
+  /* Gallery */
+  #gallery {
+    padding: 120px 5vw;
+  }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 200px);
+    gap: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .gallery-item {
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(135deg, rgba(192,132,252,0.1), rgba(125,211,252,0.08));
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: none;
+  }
+  .gallery-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    z-index: 2;
+  }
+  .gallery-item:nth-child(1) { grid-column: span 2; grid-row: span 2; }
+  .gallery-item:nth-child(4) { grid-column: span 2; }
+  .gallery-item:nth-child(7) { grid-column: span 2; }
+
+  .gallery-ph {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: rgba(255,255,255,0.2);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+  .gallery-ph .icon { font-size: 1.8rem; opacity: 0.4; }
+
+  .praim-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  .praim-photo {
+    width: 220px;
+    height: 220px;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 2px solid rgba(192,132,252,0.3);
+    box-shadow: 0 0 40px rgba(192,132,252,0.2);
+    position: relative;
+    background: linear-gradient(135deg, rgba(192,132,252,0.1), rgba(125,211,252,0.1));
+  }
+  .praim-photo img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .praim-ph {
+    width: 100%; height: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 2rem;
+    color: rgba(255,255,255,0.3);
+    text-align: center;
+  }
+  .praim-ph span { font-size: 0.75rem; letter-spacing: 0.05em; }
+  .praim-text {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--sky), var(--mint), var(--lavender));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.05em;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  /* Footer */
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 60px 5vw;
+    text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+  footer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(192,132,252,0.04), transparent);
+    pointer-events: none;
+  }
+  .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--lavender), var(--rose), var(--sky));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+    animation: shimmer 4s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%,100% { filter: brightness(1); }
+    50% { filter: brightness(1.3); }
+  }
+  .footer-copy {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.1em;
+  }
+  .footer-hearts {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 20px 0;
+    font-size: 1.2rem;
+  }
+  .heart {
+    animation: heartbeat 2s ease-in-out infinite;
+  }
+  .heart:nth-child(2) { animation-delay: 0.3s; }
+  .heart:nth-child(3) { animation-delay: 0.6s; }
+  .heart:nth-child(4) { animation-delay: 0.9s; }
+  .heart:nth-child(5) { animation-delay: 1.2s; }
+  @keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .friends-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+    .gallery-grid {
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: auto;
+    }
+    .gallery-item:nth-child(1),
+    .gallery-item:nth-child(4),
+    .gallery-item:nth-child(7) { grid-column: span 1; grid-row: span 1; }
+    .gallery-item { height: 140px; }
+    body { cursor: auto; }
+    .cursor, .cursor-ring { display: none; }
+  }
+  @media (max-width: 480px) {
+    .friends-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<div class="bg-mesh">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
+<nav>
+  <div class="nav-logo">my people</div>
+  <div class="nav-links">
+    <a href="#friends">Друзья</a>
+    <a href="#why">О дружбе</a>
+    <a href="#gallery">Галерея</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-tag">💫 посвящается</div>
+  <h1 class="hero-title">
+    Мои лучшие друзья<br><span>й оу годдэмн шишь мабой</span>
+  </h1>
+  <p class="hero-sub">Этот сайт посвящён самым важным людям в моей жизни</p>
+  <div class="hero-cta">
+    <a href="#friends" class="btn-primary">Познакомиться <span>→</span></a>
+  </div>
+  <div class="scroll-indicator">
+    <span>scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- FRIENDS -->
+<section id="friends">
+  <div class="section-header">
+    <span class="section-label">👥 мои люди</span>
+    <h2 class="section-title">Самые <span class="accent">классные</span></h2>
+  </div>
+
+  <div class="friends-grid">
+
+    <!-- Назар -->
+    <div class="friend-card">
+      <div class="card-photo">
+        <img src="nazar.png" alt="Назар">
+      </div>
+      <div class="card-body">
+        <div class="card-number">01</div>
+        <div class="card-name">Назар</div>
+        <p class="card-desc">крутой чел который просто сигма ⚽ махорага футбик йоу 🔥</p>
+        <a href="#" class="btn-more">Подробнее <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Вероника -->
+    <div class="friend-card">
+      <div class="card-photo">
+        <img src="veronika.png" alt="Вероника">
+      </div>
+      <div class="card-body">
+        <div class="card-number">02</div>
+        <div class="card-name">Вероника</div>
+        <p class="card-desc">ну я хз что сказать но впринципе норм девка 🍢🥩 шашлык + шампур мухахахха</p>
+        <a href="#" class="btn-more">Подробнее <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Артём -->
+    <div class="friend-card">
+      <div class="card-photo">
+        <img src="artem.png" alt="Артём">
+      </div>
+      <div class="card-body">
+        <div class="card-number">03</div>
+        <div class="card-name">Артём</div>
+        <p class="card-desc">главный тупой чел он на всех кидается и йоу годдэмн шишь ⚽ футбик крутой 💀🔥</p>
+        <a href="#" class="btn-more">Подробнее <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Настя -->
+    <div class="friend-card">
+      <div class="card-photo">
+        <img src="nastya.png" alt="Настя">
+      </div>
+      <div class="card-body">
+        <div class="card-number">04</div>
+        <div class="card-name">Настя</div>
+        <p class="card-desc">тоже тупая но весело с ней ваще 😭 жалко что переехала но всё равно иногда будет гулять 🤙</p>
+        <a href="#" class="btn-more">Подробнее <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Рома -->
+    <div class="friend-card">
+      <div class="card-photo">
+        <img src="roma.png" alt="Рома">
+      </div>
+      <div class="card-body">
+        <div class="card-number">05</div>
+        <div class="card-name">Рома</div>
+        <p class="card-desc">жоски ⚽ футбик пацан окак мем — всегда в наших сердцах 👑🕊️</p>
+        <a href="#" class="btn-more">Подробнее <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Тимофей (no photo) -->
+    <div class="friend-card">
+      <div class="card-photo">
+        <div class="soon-placeholder">
+          <div class="soon-sparkle">✨</div>
+          <div class="soon-badge">Скоро</div>
+          <p class="soon-text">Фото скоро появится</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-number">06</div>
+        <div class="card-name">Тимофей</div>
+        <p class="card-desc">загадочный крутой чел — точно либо станет квантовым гением который делает всё своими руками, либо хз учитель технологий нафек 😂⚛️🔧 но он легенда</p>
+        <a href="#" class="btn-more">Подробнее <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Милана -->
+    <div class="friend-card">
+      <div class="card-photo">
+        <img src="milana.png" alt="Милана">
+      </div>
+      <div class="card-body">
+        <div class="card-number">07</div>
+        <div class="card-name">Милана</div>
+        <p class="card-desc">у неё скоро пк взорвётся от моих имбовых игр 💻💥 а ваще впринципе вишенька и бабушки — легенда 🍒👑</p>
+        <a href="#" class="btn-more">Подробнее <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Диана -->
+    <div class="friend-card">
+      <div class="card-photo">
+        <img src="diana.png" alt="Диана">
+      </div>
+      <div class="card-body">
+        <div class="card-number">08</div>
+        <div class="card-name">Диана</div>
+        <p class="card-desc">ну я впринципе хз что сказать потому что жоска страшно шишь годдэмн 😭🔥 главная кто делал стикеры — легенда 🎨</p>
+        <a href="#" class="btn-more">Подробнее <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- WHY -->
+<section id="why">
+  <div class="why-inner">
+    <span class="section-label">🌸 о дружбе</span>
+    <h2 class="section-title" style="margin-bottom:60px;">Почему я ценю <span class="accent">своих друзей</span></h2>
+    <p class="big-quote">
+      ПОТОМУ ЧТО ОНИ ТАКИЕ ЖЕ ТУПЫЕ КАК И Я — И ВСЕГДА МЫ ВЕСЕЛИМСЯ И ЙОУУУУ ГОДДЭМН
+    </p>
+    <div class="divider"></div>
+    <p class="why-text">
+      Серьёзно. Лучшие друзья — это не те, кто умный и скучный. Это те, кто такой же неадекватный, как ты. Кто смеётся над теми же тупыми вещами, кто не осуждает, кто просто рядом и всё. Вот они — мои люди. Тупые, весёлые, настоящие. Йоу годдэмн 🔥
+    </p>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="section-header">
+    <span class="section-label">📷 моменты</span>
+    <h2 class="section-title">Галерея <span class="accent">воспоминаний</span></h2>
+  </div>
+  <div class="gallery-grid">
+    <div class="gallery-item"><div class="gallery-ph"><span class="icon">🖼️</span><span>Фото</span></div></div>
+    <div class="gallery-item"><div class="gallery-ph"><span class="icon">🖼️</span><span>Фото</span></div></div>
+    <div class="gallery-item"><div class="gallery-ph"><span class="icon">🖼️</span><span>Фото</span></div></div>
+    <div class="gallery-item"><div class="gallery-ph"><span class="icon">🖼️</span><span>Фото</span></div></div>
+    <div class="gallery-item"><div class="gallery-ph"><span class="icon">🖼️</span><span>Фото</span></div></div>
+    <div class="gallery-item"><div class="gallery-ph"><span class="icon">🖼️</span><span>Фото</span></div></div>
+    <div class="gallery-item"><div class="gallery-ph"><span class="icon">🖼️</span><span>Фото</span></div></div>
+    <div class="gallery-item"><div class="gallery-ph"><span class="icon">🖼️</span><span>Фото</span></div></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="praim-block">
+    <div class="praim-photo">
+      <img src="praim.png" alt="Прайм" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+      <div class="praim-ph">📸<br><span>praim.jpg</span></div>
+    </div>
+    <div class="praim-text">ГО ПРАЙМ ЛЕТОМ</div>
+  </div>
+  <div class="footer-logo">ЫЫЫ</div>
+  <div class="footer-hearts">
+    <span class="heart">🥓</span>
+    <span class="heart">🍔</span>
+    <span class="heart">🥓</span>
+    <span class="heart">🍔</span>
+    <span class="heart">🥓</span>
+  </div>
+  <p class="footer-copy">о дружбе · бекон и бургер · всегда</p>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animateCursor() {
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform = 'translate(-50%,-50%) scale(2)';
+      ring.style.transform = 'translate(-50%,-50%) scale(1.4)';
+      ring.style.borderColor = 'rgba(192,132,252,0.6)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.transform = 'translate(-50%,-50%) scale(1)';
+      ring.style.transform = 'translate(-50%,-50%) scale(1)';
+      ring.style.borderColor = 'rgba(192,132,252,0.4)';
+    });
+  });
+
+  // Scroll reveal for cards
+  const cards = document.querySelectorAll('.friend-card, .gallery-item');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), 80 * Array.from(cards).indexOf(entry.target) % 8);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  cards.forEach(c => observer.observe(c));
+
+  // Parallax hero
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    document.querySelector('.hero-title').style.transform = `translateY(${y * 0.15}px)`;
+    document.querySelector('.hero-sub').style.transform = `translateY(${y * 0.1}px)`;
+  });
+</script>
+</body>
+</html>
